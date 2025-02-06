@@ -1,0 +1,40 @@
+# sf.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: underscore
+spec:
+  template:
+    metadata:
+      labels:
+        job-name: underscore
+    spec:
+      containers:
+      - name: trainer
+        image: ajmendez/underscore:latest
+        command: ["torchrun", "--standalone", "--nproc_per_node", "8", "train.py"]
+        ports:
+        - containerPort: 29500
+        resources:
+          requests:
+            nvidia.com/gpu: 8
+            nvidia.com/hostdev: 8
+            memory: "512Gi"
+            cpu: "32"
+          limits:
+            nvidia.com/gpu: 8
+            nvidia.com/hostdev: 8
+            memory: "512Gi"
+            cpu: "32"
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+      volumes:
+      - name: data-volume
+        emptyDir: {}
+      restartPolicy: Never
+
+
+# Apply the config with kubectl:
+# kubectl apply -f sf.yaml
+# kubectl get pods
